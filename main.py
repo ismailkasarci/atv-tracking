@@ -36,7 +36,7 @@ cap2 = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 # Object detection from Stable camera
 object_detector = cv2.createBackgroundSubtractorMOG2(history=500, varThreshold=40)
 
-boxes = []
+blobs = []
 
 
 running = True
@@ -90,67 +90,51 @@ while running:
         x, y, w, h, id = box_id
         cv2.putText(roi, str(id), (x, y - 15), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
         cv2.rectangle(roi, (x, y), (x + w, y + h), (100, 54, 255), 3)
-
         # cv2.rectangle(bg_img, (x, y), (x + w, y + h), (255, 255, 255), -1)
         
-    if not boxes:
-        if boxes_ids:
-            x, y, w, h, id = boxes_ids[0];
-            factor = 0
-            boxes.append([id, factor, x, y])
-            #print(boxes)
-
     
-    for i in range(len(boxes_ids)):
         found = False
-        id = boxes_ids[i][4]
-        for j in range(len(boxes)):
-            print(j)
-            print(boxes[j])
-            bid = boxes[j][0]
-            if bid == id:
+        for blobItem in blobs:
+            bx, by, bw, bh, bid, bf = blobItem
+            if id == bid:
                 found = True
-                if boxes[j][i] < 100:
-                    boxes[j][1] += 1
-                boxes[j][2] = boxes_ids[i][0]
-                boxes[j][3] = boxes_ids[i][1]
-                break 
+                blobItem[0] += (x - bx) / 2
+                blobItem[1] += (y - by) / 2
+                blobItem[2] += (w - bw) / 2
+                blobItem[3] += (h - bh) / 2
+                if blobItem[5] < 100:
+                    blobItem[5] += 1
         if not found:
-            x = boxes_ids[i][0]
-            y = boxes_ids[i][1]
-            w = boxes_ids[i][2]
-            h = boxes_ids[i][3]
-            boxes.append([id, 0, x, y])
-    
-    new_boxes = []
-    for j in range(len(boxes)):
-        found = False
-        bid = boxes[j][0]
-        for i in range(len(boxes_ids)):
-            id = boxes_ids[i][4]
-            if bid == id:
-                found = True
-                new_box = boxes[j]
-                new_boxes.append(new_boxes)
-        if not found:
-            if boxes[j][1] > 1:
-                boxes[j][1] += -1
-                new_box = boxes[j]
-                new_boxes.append(new_boxes)
-            else:
-                pass
-    boxes.clear()
-    boxes = new_boxes.copy()
-    new_boxes.clear()
-            
-
-    print(boxes)
-
-
+            blobs.append([x, y, w, h, id, 0])
+        
+        
         # mx, my = pygame.mouse.get_pos()
         # glow_img.set_alpha(255)
         # screen.blit(glow_img, (x, y))
-        
+    
+    temp_blobs = []
+    for blobItem in blobs:
+        found = False
+        to_be_copied = True
+        for box_id in boxes_ids:
+            x, y, w, h, id = box_id
+            if id == blobItem[4]:
+                found = True
+        if not found:
+            blobItem[5] -= 1
+            if blobItem[5] < 0:
+                to_be_copied = False
+        if to_be_copied:
+            temp_blobs.append(blobItem)
+    blobs.clear()
+    blobs = temp_blobs.copy()
+    temp_blobs.clear()
+
+    for blobItem in blobs:
+        bx, by, bw, bh, bid, bf = blobItem
+        # print(blobItem)
+        glow_img.set_alpha(bf * 3)
+        screen.blit(glow_img, (bx, by))
 
     cv2.imshow("roi", roi)
     # cv2.imshow("Frame", frame)

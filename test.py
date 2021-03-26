@@ -1,26 +1,36 @@
-import pygame
+alist = [[0, 1788], [1, 1966], [2, 1744]]
+# blist = [[1, 0], [3, 3]]
+blist = []
 
-WIDTH, HEIGHT = 1920, 1080 
+FRAME = 5
 
-pygame.init()
+for x in range(FRAME):
+    for aitem in alist:
+        found = False
+        for bitem in blist:
+            if aitem[0] == bitem[0]:
+                found = True
+                if bitem[1] < 3:
+                    bitem[1] += 1
+        if not found:
+            blist.append([aitem[0], 0])
+    temp_blist = []
+    for bitem in blist:
+        found = False
+        to_be_copied = True
+        for aitem in alist:
+            if aitem[0] == bitem[0]:
+                found = True
+        if not found:
+            bitem[1] -= 1
+            if bitem[1] == -1:
+                to_be_copied = False
+        if to_be_copied:
+            temp_blist.append(bitem)
+    blist.clear()
+    blist = temp_blist.copy()
+    temp_blist.clear()
 
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-pygame.display.set_caption('Tracking')
+print(blist)
 
-glow_img = pygame.image.load('./assets/glow_star.png').convert_alpha()
-
-    
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        
-        screen.fill((255, 0, 0))
-        
-        screen.blit(glow_img, (20, 20))
-
-        pygame.display.flip()
-
-pygame.quit()
