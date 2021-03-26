@@ -1,0 +1,39 @@
+import cv2
+
+
+# Set resolution
+cap = cv2.VideoCapture(0)
+print('Frame resolution (' + str(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) + ';' + str(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) + ')')
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+print('Frame resolution set to: (' + str(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) + ';' + str(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) + ')')
+
+
+while True:
+    success, img = cap.read()
+
+    cv2.imshow("Tracking", img)
+    
+    if cv2.waitKey(1) & 0xff == ord('q'):
+        break
+
+
+cap.release()
+cv2.destroyAllWindows()
+
+
+
+
+///////////////////////////
+
+for box_id in boxes_ids:
+        found = False;
+        x, y, w, h, id = box_id
+        for b in boxes:
+            bid, factor, x, y = b
+            if bid == id:
+                found = True;
+                b[1] += 1
+                break
+        if not found:
+            boxes.append([id, 0, x, y])
