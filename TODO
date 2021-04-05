@@ -4,7 +4,7 @@ glow rengi ve boyutu
 layer tint 
 kamera cozunurluk 
 ustuste bloblar
-clock tick / framerate
+* clock tick / framerate
 
 
 
@@ -13,3 +13,4 @@ learning rate
 static bg
 set min max
 background ratio
+
