@@ -1,12 +1,39 @@
 import cv2
 import numpy as np
 import pygame
+import random
 from tracker import *
 
 WIDTH, HEIGHT = 1440, 810
 
 
 pygame.init()
+clock = pygame.time.Clock()
+IDLE_COUNTER = pygame.time.get_ticks()
+IDLE_DURATION = 1000  #milisaniye
+IDLE_ANIM_PLAYING = False
+
+class IdleParticle:
+    def __init__(self, x, tx, speed):
+        self.x = x
+        self.tx = tx
+        self.speed = speed
+    
+    def update(self):
+        diff = self.tx - self.x
+        if abs(diff) < 100:
+            if self.tx > self.x:
+                self.tx = 0
+            else:
+                self.tx = 1000
+            self.speed = random.uniform(0.02, 0.2)
+        else:
+            self.x += (diff) * self.speed
+
+        
+ip1 = IdleParticle(0, 1000, 0.1)
+ip2 = IdleParticle(2000, -100, 0.5)
+ip3 = IdleParticle(0, 1300, 0.3)
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
@@ -34,7 +61,9 @@ cap2 = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 # cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 540)
 
 # Object detection from Stable camera
-object_detector = cv2.createBackgroundSubtractorMOG2(history=500, varThreshold=40)
+object_detector = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=200)
+
+#object_detector.setVarMin(100)
 
 blobs = []
 
@@ -65,7 +94,7 @@ while running:
     roi = frame[0: , 0: ]
 
     # 1. Object Detection
-    mask = object_detector.apply(roi)
+    mask = object_detector.apply(roi, learningRate=0.01)
     _, mask = cv2.threshold(mask, 254, 255, cv2.THRESH_BINARY)
     contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     detections = []
@@ -130,22 +159,39 @@ while running:
     blobs = temp_blobs.copy()
     temp_blobs.clear()
 
+    if blobs:
+        IDLE_COUNTER = pygame.time.get_ticks()
+        IDLE_ANIM_PLAYING = False
+    else:
+        idle_time = pygame.time.get_ticks() - IDLE_COUNTER
+        if idle_time > IDLE_DURATION:
+            IDLE_ANIM_PLAYING = True
+
+    if IDLE_ANIM_PLAYING:
+        ip1.update()
+        #ip2.update()
+        #ip3.update()
+        glow_img.set_alpha(255)
+        screen.blit(glow_img, (ip1.x, 0))
+        #screen.blit(glow_img, (ip2.x, 0))
+        #screen.blit(glow_img, (ip3.x, 0))
+
     for blobItem in blobs:
         bx, by, bw, bh, bid, bf = blobItem
         # print(blobItem)
         glow_img.set_alpha(bf * 3)
+        #glow_img = pygame.transform.scale(glow_img, (int(bw), int(bh)))
         screen.blit(glow_img, (bx, by))
 
     cv2.imshow("roi", roi)
     # cv2.imshow("Frame", frame)
-    # cv2.imshow("Mask", mask)
+    cv2.imshow("Mask", mask)
     # cv2.imshow("output", bg_img)
 
     
     
 
-    pygame.display.flip()
-
+    
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -154,6 +200,9 @@ while running:
             if event.key == pygame.K_ESCAPE:
                 running = False
 
+    pygame.display.flip()
+    clock.tick(60)
+    #print(str(int(clock.get_fps())))
 
 pygame.quit()
 
