@@ -5,11 +5,11 @@ import numpy as np
 cap1 = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 cap2 = cv2.VideoCapture(1, cv2.CAP_DSHOW)
 
-#cap1.set(cv2.CAP_PROP_FRAME_WIDTH, 960)
-#cap1.set(cv2.CAP_PROP_FRAME_HEIGHT, 540)
+cap1.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
+cap1.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
 
-#cap2.set(cv2.CAP_PROP_FRAME_WIDTH, 960)
-#cap2.set(cv2.CAP_PROP_FRAME_HEIGHT, 540)
+cap2.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
+cap2.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
 
 
 

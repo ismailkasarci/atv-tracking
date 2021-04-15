@@ -1,36 +1,56 @@
-alist = [[0, 1788], [1, 1966], [2, 1744]]
-# blist = [[1, 0], [3, 3]]
-blist = []
-
-FRAME = 5
-
-for x in range(FRAME):
-    for aitem in alist:
-        found = False
-        for bitem in blist:
-            if aitem[0] == bitem[0]:
-                found = True
-                if bitem[1] < 3:
-                    bitem[1] += 1
-        if not found:
-            blist.append([aitem[0], 0])
-    temp_blist = []
-    for bitem in blist:
-        found = False
-        to_be_copied = True
-        for aitem in alist:
-            if aitem[0] == bitem[0]:
-                found = True
-        if not found:
-            bitem[1] -= 1
-            if bitem[1] == -1:
-                to_be_copied = False
-        if to_be_copied:
-            temp_blist.append(bitem)
-    blist.clear()
-    blist = temp_blist.copy()
-    temp_blist.clear()
+import numpy as np
+import cv2 as cv
+import time
 
 
-print(blist)
+running = True;
 
+cap1 = cv.VideoCapture(0, cv.CAP_DSHOW)
+cap2 = cv.VideoCapture(1, cv.CAP_DSHOW)
+
+cap1.set(cv.CAP_PROP_FRAME_WIDTH, 320)
+cap1.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
+
+cap2.set(cv.CAP_PROP_FRAME_WIDTH, 320)
+cap2.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
+
+
+
+img1 = cv.imread('./assets/s1.jpg')
+img2 = cv.imread('./assets/s2.jpg')
+images = []
+#images.append(img1)
+#images.append(img2)
+
+def main():
+    ret1, frame1 = cap1.read()
+    ret2, frame2 = cap2.read()
+
+    frame1 = cv.flip(frame1, 1)
+    frame2 = cv.flip(frame2, 1)
+
+    images.append(img1)
+    images.append(img2)
+
+    stitcher = cv.Stitcher.create()
+    start = time.perf_counter()
+    status, pano = stitcher.stitch(images)
+    finish = time.perf_counter()
+    print(f'Toplam {round(finish-start, 2)} saniye surdu')
+
+    images.clear()
+
+    if status != cv.Stitcher_OK:
+        print("Can't stitch images, error code = %d" % status)
+    else:
+        cv.imshow('Stitch', pano)
+
+if __name__ == '__main__':
+    while running:
+        main()
+        key = cv.waitKey(30)
+        if key == 27:
+            cv.destroyAllWindows()
+            break
+    
+    
